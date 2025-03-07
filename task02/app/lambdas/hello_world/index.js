@@ -1,31 +1,25 @@
+
 exports.handler = async (event) => {
-    let response;
-    
-    if (event.path === '/hello' && event.httpMethod === 'GET') {
-        response = {
+    // Determine request path and method
+    const path = event.rawPath || event.path || "/";
+    const method = event.requestContext?.http?.method || event.httpMethod || "UNKNOWN";
+
+    // Handle only /hello GET request
+    if (path === "/hello" && method === "GET") {
+        return {
             statusCode: 200,
-            body: JSON.stringify({
-                statusCode: 200,
-                message: "Hello from Lambda"
-            }),
-            headers: {
-                "content-type": "application/json"
-            },
-            isBase64Encoded: false
-        };
-    } else {
-        response = {
-            statusCode: 400,
-            body: JSON.stringify({
-                statusCode: 400,
-                message: `Bad request syntax or unsupported method. Request path: ${event.path}. HTTP method: ${event.httpMethod}`
-            }),
-            headers: {
-                "content-type": "application/json"
-            },
-            isBase64Encoded: false
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ statusCode: 200, message: "Hello from Lambda" }), // Fixed message format
         };
     }
-    
-    return response;
+
+    // Handle all other requests with 400 error
+    return {
+        statusCode: 400,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            statusCode: 400, // Ensure statusCode is included in the response body
+            message: `Bad request syntax or unsupported method. Request path: ${path}. HTTP method: ${method}`,
+        }),
+    };
 };
