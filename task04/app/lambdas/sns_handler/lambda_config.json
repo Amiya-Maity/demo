@@ -13,7 +13,7 @@
     {
       "resource_type": "sns_topic_trigger",
       "target_topic": "lambda_topic",
-      "region": "${region}"
+      "region": "eu-west-1"
     }
   ],
   "env_variables": {},

@@ -1,3 +1,4 @@
+ 
 exports.handler = async (event) => {
     try {
         event.Records.forEach(record => {
