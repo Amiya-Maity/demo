@@ -31,10 +31,17 @@
     "dependencies": [],
     "resources": {
       "/hello": {
-        "enable_cors": false,
-        "enable_proxy": true
-      }
-    },
-    "tags": {}
+        "enable_cors": true,
+        "enable_proxy": true,
+        "methods": {
+          "GET": {
+            "lambda": {
+              "name": "hello_world"
+            }
+          }
+        }
+      },
+      "tags": {}
+    }
   }
 }
