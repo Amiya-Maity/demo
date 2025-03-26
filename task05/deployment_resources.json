@@ -14,7 +14,12 @@
             "dynamodb:DeleteItem",
             "ssm:PutParameter",
             "ssm:GetParameter",
-            "kms:Decrypt"
+            "kms:Decrypt",
+            "dynamodb:GetItem",
+            "dynamodb:Query",
+            "dynamodb:PutItem",
+            "dynamodb:Batch*",
+            "dynamodb:DeleteItem"
           ],
           "Effect": "Allow",
           "Resource": "*"
@@ -25,17 +30,28 @@
     "resource_type": "iam_policy",
     "tags": {}
   },
-  "task3_api": {
+  "${target_table}": {
+    "resource_type": "dynamodb_table",
+    "hash_key_name": "id",
+    "hash_key_type": "S",
+    "read_capacity": 1,
+    "write_capacity": 1,
+    "global_indexes": [],
+    "autoscaling": [],
+    "tags": {}
+  },
+  "task5_api": {
     "resource_type": "api_gateway",
     "deploy_stage": "api",
     "dependencies": [],
     "resources": {
-      "/hello": {
+      "/events": {
         "enable_cors": false,
-        "GET": {
+        "enable_proxy": true,
+        "POST": {
           "authorization_type": "NONE",
           "integration_type": "lambda",
-          "lambda_name": "hello_world",
+          "lambda_name": "api_handler",
           "api_key_required": false,
           "method_request_parameters": {},
           "integration_request_body_template": {},
@@ -45,16 +61,6 @@
         }
       }
     },
-    "tags": {}
-  },
-  "Events": {
-    "resource_type": "dynamodb_table",
-    "hash_key_name": "id",
-    "hash_key_type": "S",
-    "read_capacity": 1,
-    "write_capacity": 1,
-    "global_indexes": [],
-    "autoscaling": [],
     "tags": {}
   }
 }
