@@ -31,14 +31,17 @@
     "dependencies": [],
     "resources": {
       "/hello": {
-        "enable_cors": true,
-        "enable_proxy": true,
-        "methods": {
-          "GET": {
-            "lambda": {
-              "name": "hello_world"
-            }
-          }
+        "enable_cors": false,
+        "GET": {
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "hello_world",
+          "api_key_required": false,
+          "method_request_parameters": {},
+          "integration_request_body_template": {},
+          "responses": [],
+          "integration_responses": [],
+          "default_error_pattern": true
         }
       }
     },
