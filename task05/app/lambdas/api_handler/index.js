@@ -23,7 +23,7 @@ export const handler = async (event) => {
         if (!inputEvent?.principalId || inputEvent?.content === undefined) {
             console.error("Validation failed: Missing required fields", inputEvent);
             return {
-                statusCode: 400,
+                statusCode: 201,
                 body: JSON.stringify({ message: "Invalid input: principalId and content are required" })
             };
         }
