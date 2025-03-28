@@ -46,7 +46,6 @@
     "dependencies": [],
     "resources": {
       "/events": {
-        "enable_cors": false,
         "enable_proxy": true,
         "POST": {
           "authorization_type": "NONE",
