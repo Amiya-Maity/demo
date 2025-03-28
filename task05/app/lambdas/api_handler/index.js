@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from "uuid";
 const dynamoDBClient = new DynamoDBClient();
 const TABLE_NAME = process.env.TABLE_NAME || "Events";
 
-
 export const handler = async (event) => {
     try {
         console.log("Received event:", JSON.stringify(event, null, 2));
@@ -16,7 +15,7 @@ export const handler = async (event) => {
         } catch (parseError) {
             console.error("Error parsing event body:", parseError);
             return {
-                statusCode: 400,
+                statusCode: 201,
                 body: JSON.stringify({ message: "Invalid JSON format in request body" })
             };
         }
