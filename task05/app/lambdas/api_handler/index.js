@@ -9,55 +9,67 @@ export const handler = async (event) => {
     try {
         console.log("Received event:", JSON.stringify(event, null, 2));
 
+        if (!process.env.TABLE_NAME) {
+            console.error("Environment variable TABLE_NAME is not defined");
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ message: "Internal server error: Table name not defined in environment variables" })
+            };
+        }
+
+        // Parse and validate the request body
         let inputEvent;
         try {
             inputEvent = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
         } catch (parseError) {
             console.error("Error parsing event body:", parseError);
             return {
-                statusCode: 201,
+                statusCode: 400,
                 body: JSON.stringify({ message: "Invalid JSON format in request body" })
             };
         }
 
-        if (!inputEvent?.principalId || inputEvent?.content === undefined) {
-            console.error("Validation failed: Missing required fields", inputEvent);
+        const principalId = Number(inputEvent.principalId);
+        if (isNaN(principalId) || inputEvent.content === undefined) {
+            console.error("Validation failed: Missing or invalid fields", inputEvent);
             return {
-                statusCode: 201,
+                statusCode: 400,
                 body: JSON.stringify({ message: "Invalid input: principalId and content are required" })
             };
         }
 
+        // Construct the DynamoDB item
         const eventId = uuidv4();
         const createdAt = new Date().toISOString();
-
         const eventItem = {
             id: eventId,
-            principalId: Number(inputEvent.principalId),
+            principalId,
             createdAt,
             body: inputEvent.content
         };
 
-        console.log("Saving to DynamoDB:", JSON.stringify(eventItem, null, 2));
+        console.log("Constructed DynamoDB item:", JSON.stringify(eventItem, null, 2));
 
-        const response = await dynamoDBClient.send(new PutCommand({
-            TableName: TABLE_NAME,
-            Item: eventItem,
-        }));
-        console.log("Saved successfully");
+        // Save the event to DynamoDB
+        try {
+            await dynamoDBClient.send(new PutCommand({
+                TableName: TABLE_NAME,
+                Item: eventItem,
+            }));
+            console.log("Saved successfully");
+        } catch (dynamoError) {
+            console.error("Error saving to DynamoDB:", dynamoError);
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ message: "Failed to save event to DynamoDB", error: dynamoError.message })
+            };
+        }
 
-        console.log("DynamoDB Response:", response);
-
-        const responseObject = {
-                            statusCode: 201,
-                            body: JSON.stringify({
-                            statusCode: 201,
-                            event: eventItem
-                            })
-
-                        };
-
-        return responseObject;
+        // Prepare the response
+        return {
+            statusCode: 201,
+            body: JSON.stringify({ event: eventItem })
+        };
 
     } catch (error) {
         console.error("Error processing request:", error);
