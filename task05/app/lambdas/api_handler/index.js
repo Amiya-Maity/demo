@@ -1,66 +1,75 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { v4 as uuidv4 } from "uuid";
- 
-const dynamoDBClient = new DynamoDBClient();
-const TABLE_NAME = process.env.TABLE_NAME || "Events";
- 
+
+const dynamoDb = new DynamoDBClient({ region: process.env.AWS_REGION });
+
 export const handler = async (event) => {
     try {
-        console.log("Received event:", JSON.stringify(event, null, 2));
- 
-        let inputEvent;
-        try {
-            inputEvent = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
-        } catch (parseError) {
-            console.error("Error parsing event body:", parseError);
+        // Parse incoming request
+        const { principalId, content } = JSON.parse(event.body);
+
+        // Validate input
+        if (!principalId || !content) {
             return {
-                statusCode: 400,
-                body: JSON.stringify({ message: "Invalid JSON format in request body" })
+                statusCode: 400, // Bad request
+                body: JSON.stringify({
+                    message: "Invalid request format. 'principalId' and 'content' fields are required."
+                }),
             };
         }
- 
-        if (!inputEvent?.principalId || inputEvent?.content === undefined) {
-            console.error("Validation failed: Missing required fields", inputEvent);
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ message: "Invalid input: principalId and content are required" })
-            };
-        }
- 
-        const eventId = uuidv4();
-        const createdAt = new Date().toISOString();
- 
-        const eventItem = {
-            id: eventId,
-            principalId: Number(inputEvent.principalId),
-            createdAt,
-            body: inputEvent.content
+
+        // Prepare event data
+        const newEvent = {
+            id: uuidv4(),
+            principalId,
+            createdAt: new Date().toISOString(),
+            body: content,
         };
- 
-        console.log("Saving to DynamoDB:", JSON.stringify(eventItem, null, 2));
- 
-        const response = await dynamoDBClient.send(new PutCommand({
-            TableName: TABLE_NAME,
-            Item: eventItem,
-        }));
-        console.log("Saved successfully");
- 
-        console.log("DynamoDB Response:", response);
- 
-        const responseObject = {
-            statusCode: 201,
-            body: JSON.stringify({statusCode : 201, event : eventItem})
+
+        // Save to DynamoDB
+        const params = {
+            TableName: process.env.TABLE_NAME, // Example: 'cmtr-112a2f2b-Events-8rfw'
+            Item: {
+                id: { S: newEvent.id },
+                principalId: { N: String(newEvent.principalId) },
+                createdAt: { S: newEvent.createdAt },
+                body: { M: mapToDynamoDbFormat(newEvent.body) },
+            },
         };
- 
-        console.log("Final response:", JSON.stringify(responseObject, null, 2));
-        return responseObject;
- 
-    } catch (error) {
-        console.error("Error processing request:", error);
+        const command = new PutItemCommand(params);
+        await dynamoDb.send(command);
+
+        // Return successful response
         return {
-            statusCode: 500,
-            body: JSON.stringify({ message: "Internal server error", error: error.message })
+            statusCode: 201,
+            body: JSON.stringify({
+                event: newEvent, // Include the created event in response
+            }),
+        };
+    } catch (error) {
+        console.error("Error:", error);
+
+        // Return error response
+        return {
+            statusCode: 500, // Internal server error
+            body: JSON.stringify({
+                message: "An error occurred while processing the request.",
+                error: error.message,
+            }),
         };
     }
+};
+
+// Convert JS object to DynamoDB attribute map
+const mapToDynamoDbFormat = (object) => {
+    const map = {};
+    for (const key in object) {
+        if (typeof object[key] === "string") {
+            map[key] = { S: object[key] };
+        } else if (typeof object[key] === "number") {
+            map[key] = { N: object[key].toString() };
+        }
+        // Add more type handling as needed
+    }
+    return map;
 };
