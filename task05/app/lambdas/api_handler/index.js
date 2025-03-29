@@ -11,7 +11,7 @@ export const handler = async (event) => {
  
         let inputEvent;
         try {
-            inputEvent = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
+            inputEvent = event.body;
         } catch (parseError) {
             console.error("Error parsing event body:", parseError);
             return {
