@@ -11,8 +11,7 @@ export const handler = async (event) => {
  
         let inputEvent;
         try {
-            inputEvent = JSON.parse(JSON.stringify(event.body));
-            console.log(inputEvent);
+            inputEvent = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
         } catch (parseError) {
             console.error("Error parsing event body:", parseError);
             return {
@@ -21,14 +20,13 @@ export const handler = async (event) => {
             };
         }
  
-        // if (!inputEvent || typeof inputEvent !== 'object' || !('principalId' in inputEvent) || !('content' in inputEvent)) {
-        //     console.error("Validation failed: Missing required fields or incorrect structure", inputEvent);
-        //     return {
-        //         statusCode: 400,
-        //         body: JSON.stringify({ message: `Invalid input: principalId and content are required${inputEvent}` })
-        //     };
-        // }
-        
+        if (!inputEvent?.principalId || inputEvent?.content === undefined) {
+            console.error("Validation failed: Missing required fields", inputEvent);
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ message: "Invalid input: principalId and content are required" })
+            };
+        }
  
         const eventId = uuidv4();
         const createdAt = new Date().toISOString();
