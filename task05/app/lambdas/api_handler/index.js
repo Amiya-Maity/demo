@@ -7,7 +7,7 @@ const TABLE_NAME = process.env.TABLE_NAME || "Events";
 
 export const handler = async (event) => {
     try {
-        console.log("Received event:", JSON.stringify(event, null, 2));
+        console.info("Processing event:", JSON.stringify(event, null, 2));
 
         if (!process.env.TABLE_NAME) {
             console.error("Environment variable TABLE_NAME is not defined");
