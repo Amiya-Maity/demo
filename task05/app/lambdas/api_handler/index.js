@@ -20,13 +20,14 @@ export const handler = async (event) => {
             };
         }
  
-        if (!inputEvent?.principalId || inputEvent?.content === undefined) {
-            console.error("Validation failed: Missing required fields", inputEvent);
+        if (!inputEvent || typeof inputEvent !== 'object' || !('principalId' in inputEvent) || !('content' in inputEvent)) {
+            console.error("Validation failed: Missing required fields or incorrect structure", inputEvent);
             return {
                 statusCode: 400,
-                body: JSON.stringify({ message: "Invalid input: principalId and content are required" })
+                body: JSON.stringify({ message: `Invalid input: principalId and content are required${inputEvent}` })
             };
         }
+        
  
         const eventId = uuidv4();
         const createdAt = new Date().toISOString();
