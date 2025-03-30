@@ -2,10 +2,23 @@
   "api_handler-role": {
     "predefined_policies": [],
     "principal_service": "lambda",
-    "custom_policies": [
-      "lambda-basic-execution"
-    ],
+    "custom_policies": ["lambda-basic-execution"],
     "resource_type": "iam_role",
     "tags": {}
+  },
+  "api_handler-function-url": {
+    "resource_type": "aws_lambda_function_url",
+    "properties": {
+      "FunctionName": "api_handler",
+      "AuthType": "NONE",
+      "Cors": {
+        "AllowOrigins": ["*"],
+        "AllowMethods": ["GET"]
+      }
+    },
+    "tags": {
+      "Environment": "Dev",
+      "Project": "WeatherAPI"
+    }
   }
 }
