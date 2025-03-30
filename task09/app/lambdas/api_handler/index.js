@@ -1,44 +1,45 @@
 import axios from 'axios';
 
-export const handler = async (event) => {
-  const path = event.path || '';
-  const method = event.httpMethod || '';
+exports.handler = async (event) => {
+  console.log("Received event:", JSON.stringify(event, null, 2));
 
-  if (path === '/weather' && method === 'GET') {
-    try {
-      // Fetch weather data from Open-Meteo API
-      const response = await axios.get("https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current=temperature_2m,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m");
-      const weatherData = response.data;
+  const path = event?.rawPath || "/";
+  const method = event?.requestContext?.http?.method || "GET";
 
-      return {
-        statusCode: 200,
-        body: JSON.stringify(weatherData),
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        isBase64Encoded: false
-      };
-    } catch (error) {
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: error.message }),
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        isBase64Encoded: false
-      };
-    }
+  if (method === "GET" && path === "/weather") {
+      try {
+          const response = await axios.get("https://api.open-meteo.com/v1/forecast?latitude=50.4375&longitude=30.5&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m&current_weather=true");
+
+          return {
+              statusCode: 200,
+              body: JSON.stringify(response.data),
+              headers: {
+                  "content-type": "application/json"
+              },
+              isBase64Encoded: false
+          };
+      } catch (error) {
+          console.error("Error fetching weather data:", error);
+          return {
+              statusCode: 500,
+              body: JSON.stringify({ message: "Internal Server Error" }),
+              headers: {
+                  "content-type": "application/json"
+              },
+              isBase64Encoded: false
+          };
+      }
   } else {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({
-        statusCode: 400,
-        message: `Bad request syntax or unsupported method. Request path: ${path}. HTTP method: ${method}`
-      }),
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      isBase64Encoded: false
-    };
+      return {
+          statusCode: 400,
+          body: JSON.stringify({
+              statusCode: 400,
+              message: `Bad request syntax or unsupported method. Request path: ${path}. HTTP method: ${method}`
+          }),
+          headers: {
+              "content-type": "application/json"
+          },
+          isBase64Encoded: false
+      };
   }
 };
