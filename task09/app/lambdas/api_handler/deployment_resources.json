@@ -7,7 +7,7 @@
     "tags": {}
   },
   "api_handler-function-url": {
-    "resource_type": "aws_lambda_function_url",
+    "resource_type": "function_url",
     "properties": {
       "FunctionName": "api_handler",
       "AuthType": "NONE",
