@@ -10,7 +10,7 @@ const fetchWeather = async () => {
 
   try {
     const response = await axios.get(url);
-    console.log('Fetched weather data:', JSON.stringify(response.data, null, 2));
+    console.log('Fetched weather data:');
     return response.data;
   } catch (error) {
     console.error('Error fetching weather data:', error);
@@ -20,7 +20,7 @@ const fetchWeather = async () => {
 
 export const handler = async (event) => {
   try {
-    console.log('Received event:', JSON.stringify(event, null, 2));
+    console.log('Received event',TARGET_TABLE);
 
     const weatherData = await fetchWeather();
 
